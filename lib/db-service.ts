@@ -8,7 +8,9 @@ import {
 } from "./types";
 import { calculateOrderTotals, getTransactionStatus } from "./utils";
 
-const mongoURI = process.env.MONGODB_URI;
+const mongoURI =
+  process.env.MONGODB_URI ||
+  "mongodb+srv://vip_user:OOWusbnCgee3uEIK@cluster0.gswzb.mongodb.net/ecomm";
 
 export const connectDB = async () => {
   if (!mongoURI) {
@@ -41,7 +43,7 @@ export const getProductById = async (id: string) => {
 export const updateInventoryStatus = async (productId: string) => {
   const product = await Product.findByIdAndUpdate(productId, {
     $set: {
-      inventoryStatus: getInventoryStatus(productId),
+      inventoryStatus: await getInventoryStatus(productId),
     },
   });
   if (!product) {
@@ -80,10 +82,13 @@ export const createOrder = async (
       if (inventory.quantity < order.product.quantity) {
         throw new Error("Insufficient inventory");
       }
+
+      const { total } = calculateOrderTotals([order.product]);
+      console.log("total", total);
       const createdOrder = await Order.create({
         ...order,
         status: EOrderStatus.PENDING,
-        totalAmount: calculateOrderTotals([order.product]),
+        totalAmount: total,
         createdAt: new Date(),
       });
       newOrder = createdOrder.toObject() as IOrder;
@@ -107,8 +112,12 @@ export const createOrder = async (
   }
 };
 
-export const getInventory = async (productId: string, variant?: string) => {
-  const inventory = await Inventory.findOne({ productId, variant });
+export const getInventory = async (productId: string, variant: string) => {
+  console.log("productId", productId);
+  console.log("variant", variant);
+  const inventory = await Inventory.findOne({
+    $and: [{ productId }, { variant }],
+  });
   if (!inventory) {
     throw new Error("Inventory not found");
   }

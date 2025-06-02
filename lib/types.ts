@@ -41,7 +41,7 @@ export type TSelectedProductDetails = {
   title: string;
   price: number;
   image: string;
-  variant?: string;
+  variant: string;
   quantity: number;
 };
 

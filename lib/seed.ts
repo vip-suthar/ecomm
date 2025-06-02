@@ -52,7 +52,7 @@ const generateOrdersData = async (products: any[]) => {
       .arrayElements(products, { min: 1, max: products.length })
       .map((product: any) => {
         const orderQuantity = faker.number.int({ min: 1, max: 5 });
-        const variant = faker.helpers.arrayElement(product.variants);
+        const variant = faker.helpers.arrayElement(product.variants) as string;
         return {
           product: {
             productId: product._id,
@@ -75,7 +75,15 @@ const generateOrdersData = async (products: any[]) => {
             country: faker.location.country(),
           },
           status: faker.helpers.arrayElement(Object.values(EOrderStatus)),
-          totalAmount: calculateOrderTotals([product]),
+          totalAmount: calculateOrderTotals([{
+              productId: product._id,
+              title: product.title,
+              price: product.price,
+              image: product.image,
+              variant: variant,
+              quantity: orderQuantity,
+            },
+          ]).total,
         };
       });
     const createdOrders = await Order.insertMany(orders);
