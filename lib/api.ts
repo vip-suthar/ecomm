@@ -1,6 +1,6 @@
 import { IOrder, ITransaction } from "./types";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = `/api`;
 
 export async function getProducts() {
   const response = await fetch(`${API_URL}/products`);
